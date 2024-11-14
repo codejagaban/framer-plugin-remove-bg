@@ -2,7 +2,8 @@
   "id": "08f2a7",
   "name": "Remove Bg",
   "modes": [
-    "canvas"
+    "canvas",
+    "editImage"
   ],
   "icon": "/icon.svg"
 }
