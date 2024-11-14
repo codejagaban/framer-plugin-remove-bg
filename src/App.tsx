@@ -5,7 +5,7 @@ import "./App.css"
 framer.showUI({
     position: "top right",
     width: 240,
-    height: 95,
+    height: 200,
 })
 
 function useSelection() {
@@ -31,15 +31,10 @@ export function App() {
 
     return (
         <main>
-            <p>
-                Welcome! Check out the{" "}
-                <a href="https://framer.com/developers/plugins/introduction" target="_blank">
-                    Docs
-                </a>{" "}
-                to start. You have {selection.length} {layer} selected.
-            </p>
-            <button className="framer-button-primary" onClick={handleAddSvg}>
-                Insert Logo
+            <p>Welcome to BG remover, we will remove all your BGs for you</p>
+            <button className="framer-button-primary">Run</button>
+            <button className="framer-button" onClick={handleAddSvg}>
+                Set API Key
             </button>
         </main>
     )
