@@ -1,17 +1,11 @@
-import { framer, CanvasNode } from "framer-plugin";
+import { framer } from "framer-plugin";
 import { useState, useEffect, FormEvent } from "react";
 import "./App.css";
 
-// framer.notify("Background removed successfully", {
-//   // button: { text: "Undo", onClick: handleUndo },
-//   durationMs: 3000,
-//   // onDisappear: handleDisappear,
-//   variant: "success", // Or 'success', 'warning', 'error'
-// });
-
 const apiKey = localStorage.getItem("apiBgKey");
 
-console.log("API Key: ", apiKey);
+console.log(apiKey)
+
 export function App() {
   const [showUI, setShowUI] = useState(false);
 
@@ -78,7 +72,10 @@ export function App() {
       const imgURL = async () => await framer.getImage();
       const transformedImage = async () => await removeBg(imgURL);
       console.log("transformedImage: ", transformedImage());
-      // fs.writeFileSync("no-bg.png", Buffer.from(rbgResultData));
+        // fs.writeFileSync("no-bg.png", Buffer.from(rbgResultData));
+        
+        // framer.setImage(transformedImage);
+
     } else if (framer.mode === "canvas") {
       return framer.notify("Please select an image to remove the background", {
         durationMs: 3000,
