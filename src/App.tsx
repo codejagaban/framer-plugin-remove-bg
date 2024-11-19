@@ -4,42 +4,52 @@ import "./App.css";
 
 const apiKey = localStorage.getItem("apiBgKey");
 
+// Helper function to convert Blob to Base64
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to convert Blob to Base64"));
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function removeBg(imageURL: string) {
   const formData = new FormData();
   formData.append("size", "auto");
   formData.append("image_url", imageURL);
 
   const response = await fetch("https://api.remove.bg/v1.0/removebg", {
-      method: "POST",
-      headers: { "X-Api-Key": apiKey as string },
-      body: formData,
+    method: "POST",
+    headers: { "X-Api-Key": apiKey as string },
+    body: formData,
   });
 
   if (response.ok) {
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      framer.setImage({image: url});
+    const blob = await response.blob();
+    const base64 = await blobToBase64(blob);
+    framer.setImage({ image: base64 });
   } else {
-      if (response.status === 403) {
-          framer.notify("API Key is invalid", {
-              button: {
-                  text: "Set API Key",
-                  onClick: () => {
-                      setShowUI(true);
-                      framer.showUI({
-                          position: "top right",
-                          width: 350,
-                          height: 200,
-                      });
-                  },
-              },
-              durationMs: 200000,
-              // onDisappear: handleDisappear,
-              variant: "error", // Or 'success', 'warning', 'error'
-          })
-      }
+    if (response.status === 403) {
+      framer.notify("API Key is invalid", {
+        button: {
+          text: "Set API Key",
+          onClick: () => {
+            setShowUI(true);
+            framer.showUI({
+              position: "top right",
+              width: 350,
+              height: 200,
+            });
+          },
+        },
+        durationMs: 200000,
+        // onDisappear: handleDisappear,
+        variant: "error", // Or 'success', 'warning', 'error'
+      });
+    }
     console.log("response: ", { response });
-      throw new Error(`${response.status}: ${response.statusText}`);
+    throw new Error(`${response.status}: ${response.statusText}`);
   }
 }
 
