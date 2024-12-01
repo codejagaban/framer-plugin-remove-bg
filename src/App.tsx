@@ -4,51 +4,58 @@ import "./App.css";
 
 const apiKey = localStorage.getItem("apiBgKey");
 
-// Helper function to convert Blob to Base64
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Failed to convert Blob to Base64"));
-    reader.readAsDataURL(blob);
-  });
-}
-
 async function removeBg(imageURL: string) {
   const formData = new FormData();
   formData.append("size", "auto");
   formData.append("image_url", imageURL);
 
-  const response = await fetch("https://api.remove.bg/v1.0/removebg", {
-    method: "POST",
-    headers: { "X-Api-Key": apiKey as string },
-    body: formData,
-  });
+  try {
+    const response = await fetch("https://api.remove.bg/v1.0/removebg", {
+      method: "POST",
+      headers: { "X-Api-Key": apiKey as string },
+      body: formData,
+    });
 
-  if (response.ok) {
-    const blob = await response.blob();
-    const base64 = await blobToBase64(blob);
-    console.log("base64: ", base64);
-    framer.setImage({ image: base64 });
-  } else {
-    if (response.status === 403) {
-      framer.notify("API Key is invalid", {
-        button: {
-          text: "Set API Key",
-          onClick: () => {
-            setShowUI(true);
-            framer.showUI({
-              position: "top right",
-              width: 350,
-              height: 200,
-            });
-          },
-        },
-        durationMs: 200000,
-        // onDisappear: handleDisappear,
-        variant: "error", // Or 'success', 'warning', 'error'
-      });
+    if (response.ok) {
+      const blob = await response.blob();
+
+      // Generate a temporary URL for the Blob
+      const tempUrl = URL.createObjectURL(blob);
+
+      // Use Framer.setImage with the temporary URL
+      await framer.setImage({ image: tempUrl });
+
+      console.log("Temporary URL for the image: ", tempUrl);
+
+      // Cleanup: Revoke the URL after setting it
+      URL.revokeObjectURL(tempUrl);
+      console.log("Temporary URL revoked.");
+    } else {
+      handleResponseError(response);
     }
+  } catch (error) {
+    console.error("Error during background removal: ", error);
+  }
+}
+
+function handleResponseError(response: Response) {
+  if (response.status === 403) {
+    framer.notify("API Key is invalid", {
+      button: {
+        text: "Set API Key",
+        onClick: () => {
+          setShowUI(true);
+          framer.showUI({
+            position: "top right",
+            width: 350,
+            height: 200,
+          });
+        },
+      },
+      durationMs: 200000,
+      variant: "error",
+    });
+  } else {
     console.log("response: ", { response });
     throw new Error(`${response.status}: ${response.statusText}`);
   }
@@ -73,27 +80,29 @@ export function App() {
             },
           },
           durationMs: 200000,
-          // onDisappear: handleDisappear,
-          variant: "error", // Or 'success', 'warning', 'error'
+          variant: "error",
         });
-
         return;
       }
-      const imgURL = await framer.getImage();
-      console.log("fetchImage: ", imgURL?.url);
 
-      removeBg(imgURL?.url);
+      const imgURL = await framer.getImage();
+      if (imgURL?.url) {
+        console.log("Fetched Image URL: ", imgURL.url);
+        await removeBg(imgURL.url);
+      }
     } else if (framer.mode === "canvas") {
-      return framer.notify("Please select an image to remove the background", {
+      framer.notify("Please select an image to remove the background", {
         durationMs: 3000,
         variant: "error",
       });
     }
   }
+
   useEffect(() => {
     removeBackground();
   }, []);
-  const handelFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+
+  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const input = form.elements[0] as HTMLInputElement;
@@ -117,10 +126,9 @@ export function App() {
             >
               remove.bg
             </a>{" "}
-            remove.bg website and create a free account (you will need to
-            confirm your email).
+            website and create a free account (you will need to confirm your
+            email).
           </p>
-          <br />
           <p>
             2. After that, you can find your API key here{" "}
             <a
@@ -132,16 +140,12 @@ export function App() {
             </a>
             .
           </p>
-          <br />
-          <form onSubmit={handelFormSubmit}>
+          <form onSubmit={handleFormSubmit}>
             <div className="form-input">
               <input type="text" placeholder="API Key" />
-              <div>
-                {" "}
-                <button type="submit" className="framer-button-primary">
-                  Save
-                </button>
-              </div>
+              <button type="submit" className="framer-button-primary">
+                Save
+              </button>
             </div>
           </form>
         </div>
