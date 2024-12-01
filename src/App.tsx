@@ -4,6 +4,26 @@ import "./App.css";
 
 const apiKey = localStorage.getItem("apiBgKey");
 
+// Function to upload the Blob to a storage endpoint and get a public HTTPS URL
+async function uploadBlobAndGetURL(blob: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append("UPLOADCARE_PUB_KEY",  import.meta.env.VITE_UC_PUBLIC_KEY); // Replace with your Uploadcare public key
+  formData.append("file", blob);
+
+  const response = await fetch("https://upload.uploadcare.com/base/", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload image: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return `https://ucarecdn.com/${data.file}/`;
+}
+
+// Function to remove the background from an image using remove.bg API
 async function removeBg(imageURL: string) {
   const formData = new FormData();
   formData.append("size", "auto");
@@ -19,17 +39,16 @@ async function removeBg(imageURL: string) {
     if (response.ok) {
       const blob = await response.blob();
 
-      // Generate a temporary URL for the Blob
-      const tempUrl = URL.createObjectURL(blob);
+      // Upload the Blob to get a public HTTPS URL
+      const httpsURL = await uploadBlobAndGetURL(blob);
 
-      // Use Framer.setImage with the temporary URL
-      await framer.setImage({ image: tempUrl });
+      // Use Framer.setImage with the HTTPS URL
+      await framer.setImage({ image: httpsURL });
 
-      console.log("Temporary URL for the image: ", tempUrl);
-
-      // Cleanup: Revoke the URL after setting it
-      URL.revokeObjectURL(tempUrl);
-      console.log("Temporary URL revoked.");
+      console.log("Image successfully uploaded and set in Framer: ", httpsURL);
+      framer.notify("Background removed successfully", {
+        variant: "success",
+      });
     } else {
       handleResponseError(response);
     }
@@ -38,6 +57,7 @@ async function removeBg(imageURL: string) {
   }
 }
 
+// Handle API response errors
 function handleResponseError(response: Response) {
   if (response.status === 403) {
     framer.notify("API Key is invalid", {
@@ -56,7 +76,7 @@ function handleResponseError(response: Response) {
       variant: "error",
     });
   } else {
-    console.log("response: ", { response });
+    console.error("Response error: ", response);
     throw new Error(`${response.status}: ${response.statusText}`);
   }
 }
@@ -64,6 +84,7 @@ function handleResponseError(response: Response) {
 export function App() {
   const [showUI, setShowUI] = useState(false);
 
+  // Function to trigger background removal
   async function removeBackground() {
     if (framer.mode === "image" || framer.mode === "editImage") {
       if (!apiKey) {
@@ -98,10 +119,12 @@ export function App() {
     }
   }
 
+  // Trigger background removal on component mount
   useEffect(() => {
     removeBackground();
   }, []);
 
+  // Handle API key form submission
   const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
