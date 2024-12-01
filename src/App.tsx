@@ -28,6 +28,7 @@ async function removeBg(imageURL: string) {
   if (response.ok) {
     const blob = await response.blob();
     const base64 = await blobToBase64(blob);
+    console.log("base64: ", base64);
     framer.setImage({ image: base64 });
   } else {
     if (response.status === 403) {
