@@ -4,10 +4,9 @@ import "./App.css";
 
 const apiKey = localStorage.getItem("apiBgKey");
 
-// Function to upload the Blob to a storage endpoint and get a public HTTPS URL
 async function uploadBlobAndGetURL(blob: Blob): Promise<string> {
   const formData = new FormData();
-  formData.append("UPLOADCARE_PUB_KEY",  import.meta.env.VITE_UC_PUBLIC_KEY);
+  formData.append("UPLOADCARE_PUB_KEY", import.meta.env.VITE_UC_PUBLIC_KEY);
   formData.append("file", blob);
 
   const response = await fetch("https://upload.uploadcare.com/base/", {
@@ -23,7 +22,6 @@ async function uploadBlobAndGetURL(blob: Blob): Promise<string> {
   return `https://ucarecdn.com/${data.file}/`;
 }
 
-// Function to remove the background from an image using remove.bg API
 async function removeBg(imageURL: string) {
   const formData = new FormData();
   formData.append("size", "auto");
@@ -38,17 +36,13 @@ async function removeBg(imageURL: string) {
 
     if (response.ok) {
       const blob = await response.blob();
-
-      // Upload the Blob to get a public HTTPS URL
       const httpsURL = await uploadBlobAndGetURL(blob);
-
-      // Use Framer.setImage with the HTTPS URL
       await framer.setImage({ image: httpsURL });
 
       framer.notify("Background removed successfully", {
         variant: "success",
       });
-      framer.closePlugin()
+      framer.closePlugin();
     } else {
       handleResponseError(response);
     }
@@ -57,14 +51,12 @@ async function removeBg(imageURL: string) {
   }
 }
 
-// Handle API response errors
 function handleResponseError(response: Response) {
   if (response.status === 403) {
     framer.notify("API Key is invalid", {
       button: {
         text: "Set API Key",
         onClick: () => {
-          setShowUI(true);
           framer.showUI({
             position: "top right",
             width: 350,
@@ -75,7 +67,7 @@ function handleResponseError(response: Response) {
       durationMs: 200000,
       variant: "error",
     });
-    framer.closePlugin()
+    framer.closePlugin();
   } else {
     console.error("Response error: ", response);
     throw new Error(`${response.status}: ${response.statusText}`);
@@ -85,7 +77,6 @@ function handleResponseError(response: Response) {
 export function App() {
   const [showUI, setShowUI] = useState(false);
 
-  // Function to trigger background removal
   async function removeBackground() {
     if (framer.mode === "image" || framer.mode === "editImage") {
       if (!apiKey) {
@@ -117,16 +108,14 @@ export function App() {
         durationMs: 3000,
         variant: "error",
       });
-      framer.closePlugin()
+      framer.closePlugin();
     }
   }
 
-  // Trigger background removal on component mount
   useEffect(() => {
     removeBackground();
   }, []);
 
-  // Handle API key form submission
   const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
@@ -136,7 +125,7 @@ export function App() {
       durationMs: 3000,
       variant: "success",
     });
-    framer.closePlugin()
+    framer.closePlugin();
   };
 
   return (
