@@ -7,7 +7,7 @@ const apiKey = localStorage.getItem("apiBgKey");
 // Function to upload the Blob to a storage endpoint and get a public HTTPS URL
 async function uploadBlobAndGetURL(blob: Blob): Promise<string> {
   const formData = new FormData();
-  formData.append("UPLOADCARE_PUB_KEY",  import.meta.env.VITE_UC_PUBLIC_KEY); // Replace with your Uploadcare public key
+  formData.append("UPLOADCARE_PUB_KEY",  import.meta.env.VITE_UC_PUBLIC_KEY);
   formData.append("file", blob);
 
   const response = await fetch("https://upload.uploadcare.com/base/", {
@@ -45,10 +45,10 @@ async function removeBg(imageURL: string) {
       // Use Framer.setImage with the HTTPS URL
       await framer.setImage({ image: httpsURL });
 
-      console.log("Image successfully uploaded and set in Framer: ", httpsURL);
       framer.notify("Background removed successfully", {
         variant: "success",
       });
+      framer.closePlugin()
     } else {
       handleResponseError(response);
     }
@@ -75,6 +75,7 @@ function handleResponseError(response: Response) {
       durationMs: 200000,
       variant: "error",
     });
+    framer.closePlugin()
   } else {
     console.error("Response error: ", response);
     throw new Error(`${response.status}: ${response.statusText}`);
@@ -116,6 +117,7 @@ export function App() {
         durationMs: 3000,
         variant: "error",
       });
+      framer.closePlugin()
     }
   }
 
@@ -134,6 +136,7 @@ export function App() {
       durationMs: 3000,
       variant: "success",
     });
+    framer.closePlugin()
   };
 
   return (
