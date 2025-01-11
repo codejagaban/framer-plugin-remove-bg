@@ -1,9 +1,9 @@
 {
   "id": "08f2a7",
-  "name": "Remove Bg",
+  "name": "Remove Bg plugin",
   "modes": [
     "canvas",
     "editImage"
   ],
-  "icon": "/icon.svg"
+  "icon": "/icon.png"
 }

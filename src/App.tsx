@@ -100,7 +100,6 @@ export function App() {
 
       const imgURL = await framer.getImage();
       if (imgURL?.url) {
-        console.log("Fetched Image URL: ", imgURL.url);
         await removeBg(imgURL.url);
       }
     } else if (framer.mode === "canvas") {
